@@ -1,6 +1,8 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
+from sklearn.model_selection import train_test_split
+
 
 # Load dataset
 df = pd.read_csv("data/WA_Fn-UseC_-Telco-Customer-Churn.csv")
@@ -10,6 +12,7 @@ print(df.shape)
 
 print("\nOriginal data types:")
 print(df.dtypes)
+
 
 # Clean TotalCharges
 df["TotalCharges"] = pd.to_numeric(
@@ -40,6 +43,7 @@ print(missing_total_charges["tenure"].tolist())
 print("\nNUMBER OF MISSING TOTAL CHARGES:")
 print(len(missing_total_charges))
 
+
 # Handle missing TotalCharges
 df["TotalCharges"] = df["TotalCharges"].fillna(0)
 
@@ -69,9 +73,21 @@ print(df["Churn"].value_counts())
 print("\nChurn data type:")
 print(df["Churn"].dtype)
 
+
+# Separate features and target
+X = df.drop("Churn", axis=1)
+y = df["Churn"]
+
+print("\nFeature shape:")
+print(X.shape)
+
+print("\nTarget shape:")
+print(y.shape)
+
+
 # Identify categorical and numerical features
-categorical_columns = df.select_dtypes(include="str").columns.tolist()
-numerical_columns = df.select_dtypes(exclude="str").columns.tolist()
+categorical_columns = X.select_dtypes(include="str").columns.tolist()
+numerical_columns = X.select_dtypes(exclude="str").columns.tolist()
 
 print("\nCategorical columns:")
 print(categorical_columns)
@@ -79,31 +95,28 @@ print(categorical_columns)
 print("\nNumerical columns:")
 print(numerical_columns)
 
-# Separate features and target
-X = df.drop("Churn", axis=1)
-y = df["Churn"]
 
-print("\nFeature shape:")
-print(X.shape)
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42,
+    stratify=y
+)
 
-print("\nTarget shape:")
-print(y.shape)
+print("\nTraining feature shape:")
+print(X_train.shape)
 
-# Separate features and target
-X = df.drop("Churn", axis=1)
-y = df["Churn"]
+print("\nTesting feature shape:")
+print(X_test.shape)
 
-print("\nFeature shape:")
-print(X.shape)
+print("\nTraining target distribution:")
+print(y_train.value_counts(normalize=True) * 100)
 
-print("\nTarget shape:")
-print(y.shape)
+print("\nTesting target distribution:")
+print(y_test.value_counts(normalize=True) * 100)
 
-print("\nX columns:")
-print(X.columns.tolist())
-
-print("\nIs Churn in X?")
-print("Churn" in X.columns)
 
 # Create preprocessing transformer
 preprocessor = ColumnTransformer(
@@ -117,25 +130,32 @@ preprocessor = ColumnTransformer(
     remainder="passthrough"
 )
 
-# Fit and transform the features
-X_encoded = preprocessor.fit_transform(X)
 
-print("\nEncoded feature shape:")
-print(X_encoded.shape)
+# Fit preprocessing only on training data
+X_train_encoded = preprocessor.fit_transform(X_train)
 
-# Final preprocessing verification
+# Transform testing data using the fitted preprocessor
+X_test_encoded = preprocessor.transform(X_test)
 
+print("\nEncoded training feature shape:")
+print(X_train_encoded.shape)
+
+print("\nEncoded testing feature shape:")
+print(X_test_encoded.shape)
+
+
+# Final verification
 print("\nFINAL VERIFICATION")
 print("-------------------")
 
-print("Original feature shape:", X.shape)
-print("Encoded feature shape:", X_encoded.shape)
-print("Target shape:", y.shape)
+print("Training samples:", X_train.shape[0])
+print("Testing samples:", X_test.shape[0])
+
+print("Encoded training features:", X_train_encoded.shape[1])
+print("Encoded testing features:", X_test_encoded.shape[1])
 
 print("\nMissing values in target:")
-print(y.isnull().sum())
-
-print("\nTarget distribution:")
-print(y.value_counts())
+print("Training:", y_train.isnull().sum())
+print("Testing:", y_test.isnull().sum())
 
 print("\nPreprocessing completed successfully.")
