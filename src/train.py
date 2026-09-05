@@ -1,5 +1,5 @@
 import pandas as pd
-
+import joblib
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -461,3 +461,14 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.tight_layout()
 plt.show()
+
+
+# Save the best model
+
+joblib.dump(
+    decision_tree_grid.best_estimator_,
+    "models/best_model.pkl"
+)
+
+print("\nBest model saved successfully.")
+print("Model path: models/best_model.pkl")
