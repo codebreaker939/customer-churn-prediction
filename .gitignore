@@ -9,3 +9,5 @@ data/*.csv
  # Streamlit agent skills (environment-specific symlinks)
  .agent/
 .agents/skills/developing-with-streamlit
+
+ashmit/
